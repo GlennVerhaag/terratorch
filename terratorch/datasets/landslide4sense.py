@@ -98,7 +98,7 @@ class Landslide4SenseNonGeo(NonGeoDataset):
 
         return output
 
-    def plot(self, sample: dict[str, torch.Tensor], suptitle: str | None = None) -> plt.Figure:
+    def plot(self, sample: dict[str, torch.Tensor], save_path: str, suptitle: str | None = None) -> None:
         rgb_indices = [self.bands.index(band) for band in self.rgb_bands if band in self.bands]
 
         if len(rgb_indices) != 3:
@@ -134,7 +134,7 @@ class Landslide4SenseNonGeo(NonGeoDataset):
         ax[2].imshow(mask, cmap=cmap, alpha=0.3, norm=norm)
         ax[2].set_title("GT Mask on Image")
         ax[2].axis("off")
-
+        
         if "prediction" in sample:
             prediction = sample["prediction"]
             ax[3].imshow(prediction, cmap=cmap, norm=norm)
@@ -151,4 +151,5 @@ class Landslide4SenseNonGeo(NonGeoDataset):
         if suptitle:
             plt.suptitle(suptitle)
 
-        return fig
+        fig.savefig(save_path)
+        plt.close(fig)
