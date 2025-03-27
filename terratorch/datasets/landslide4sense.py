@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from matplotlib import colormaps
+from matplotlib.figure import Figure
 from matplotlib.colors import Normalize
 
 from terratorch.datasets.utils import default_transform, validate_bands
@@ -98,7 +99,17 @@ class Landslide4SenseNonGeo(NonGeoDataset):
 
         return output
 
-    def plot(self, sample: dict[str, torch.Tensor], suptitle: str | None = None) -> plt.Figure:
+    def plot(self, sample: dict[str, torch.Tensor], suptitle: str | None = None, save_path: str | None = None) -> Figure:
+        """ Plot a sample from the dataset
+        
+        Args:
+            sample (dict[str, Tensor]): a sample returned by :meth:`__getitem__`
+            suptitle (str|None): optional string to be used as the figure's suptitle
+            save_path (str|None): optional string defining the file path to save the generated figure
+
+        Returns:
+            A matplotlib Figure with the rendered sample
+        """
         rgb_indices = [self.bands.index(band) for band in self.rgb_bands if band in self.bands]
 
         if len(rgb_indices) != 3:
@@ -134,7 +145,7 @@ class Landslide4SenseNonGeo(NonGeoDataset):
         ax[2].imshow(mask, cmap=cmap, alpha=0.3, norm=norm)
         ax[2].set_title("GT Mask on Image")
         ax[2].axis("off")
-
+        
         if "prediction" in sample:
             prediction = sample["prediction"]
             ax[3].imshow(prediction, cmap=cmap, norm=norm)
@@ -148,7 +159,10 @@ class Landslide4SenseNonGeo(NonGeoDataset):
             ]
             ax[0].legend(handles=legend_handles, bbox_to_anchor=(1.05, 1), loc="upper left")
 
-        if suptitle:
+        if suptitle is not None:
             plt.suptitle(suptitle)
+
+        if save_path is not None:
+            fig.savefig(save_path)
 
         return fig

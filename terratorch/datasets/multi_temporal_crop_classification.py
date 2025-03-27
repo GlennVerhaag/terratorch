@@ -218,15 +218,16 @@ class MultiTemporalCropClassification(NonGeoDataset):
             data = data.fillna(nan_replace)
         return data
 
-    def plot(self, sample: dict[str, Tensor], suptitle: str | None = None) -> Figure:
-        """Plot a sample from the dataset.
+    def plot(self, sample: dict[str, Tensor], suptitle: str | None = None, save_path: str | None = None) -> Figure:
+        """ Plot a sample from the dataset
 
         Args:
-            sample: a sample returned by :meth:`__getitem__`
-            suptitle: optional string to use as a suptitle
+            sample (dict[str, Tensor]): a sample returned by :meth:`__getitem__`
+            suptitle (str|None): optional string to use as a suptitle
+            save_path (str|None): optional string defining the file path to save the generated figure
 
         Returns:
-            a matplotlib Figure with the rendered sample
+            A matplotlib Figure with the rendered sample
         """
         num_images = self.time_steps + 2
 
@@ -276,5 +277,9 @@ class MultiTemporalCropClassification(NonGeoDataset):
 
         if suptitle is not None:
             plt.suptitle(suptitle)
+
+        # Save the figure to the given path if specified
+        if save_path is not None:
+            fig.savefig(save_path)
 
         return fig

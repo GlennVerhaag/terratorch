@@ -433,13 +433,14 @@ class GenericNonGeoPixelwiseRegressionDataset(GenericPixelWiseDataset):
         item["mask"] = item["mask"].float()
         return item
 
-    def plot(self, sample: dict[str, Tensor], suptitle: str | None = None, show_axes: bool | None = False) -> Figure:
+    def plot(self, sample: dict[str, Tensor], suptitle: str | None = None, show_axes: bool | None = False, save_path: str | None = None) -> Figure:
         """Plot a sample from the dataset.
 
         Args:
             sample (dict[str, Tensor]): a sample returned by :meth:`__getitem__`
             suptitle (str|None): optional string to use as a suptitle
             show_axes (bool|None): whether to show axes or not
+            save_path (str|None): optional string defining the file path to save the generated figure
 
         Returns:
             a matplotlib Figure with the rendered sample
@@ -475,7 +476,7 @@ class GenericNonGeoPixelwiseRegressionDataset(GenericPixelWiseDataset):
         )
 
     @staticmethod
-    def _plot_sample(image, label, prediction=None, suptitle=None, show_axes=False):
+    def _plot_sample(image, label, prediction=None, suptitle=None,show_axes=False, save_path=None):
         num_images = 4 if prediction is not None else 3
         fig, ax = plt.subplots(1, num_images, figsize=(12, 10), layout="compressed")
         axes_visibility = "on" if show_axes else "off"
@@ -502,4 +503,8 @@ class GenericNonGeoPixelwiseRegressionDataset(GenericPixelWiseDataset):
 
         if suptitle is not None:
             plt.suptitle(suptitle)
+            
+        if save_path is not None:
+            fig.savefig(save_path)
+                
         return fig
