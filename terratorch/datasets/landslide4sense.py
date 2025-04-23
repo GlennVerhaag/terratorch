@@ -131,7 +131,7 @@ class Landslide4SenseNonGeo(NonGeoDataset):
         norm = Normalize(vmin=0, vmax=num_classes - 1)
 
         num_images = 4 if "prediction" in sample else 3
-        fig, ax = plt.subplots(1, num_images, figsize=(num_images * 4, 4), tight_layout=True)
+        fig, ax = plt.subplots(1, num_images, figsize=(num_images * 4, 4.5), tight_layout=True)
 
         ax[0].imshow(rgb_image)
         ax[0].set_title("Image")
@@ -161,7 +161,7 @@ class Landslide4SenseNonGeo(NonGeoDataset):
 
         if suptitle is not None:
             plt.suptitle(suptitle)
-
+            
         if save_path is not None:
             fig.savefig(save_path)
 
