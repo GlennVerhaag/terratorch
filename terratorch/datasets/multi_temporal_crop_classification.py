@@ -219,67 +219,96 @@ class MultiTemporalCropClassification(NonGeoDataset):
         return data
 
     def plot(self, sample: dict[str, Tensor], suptitle: str | None = None, save_path: str | None = None) -> Figure:
-        """ Plot a sample from the dataset
+        """Plot a sample from the dataset.
 
         Args:
-            sample (dict[str, Tensor]): a sample returned by :meth:`__getitem__`
-            suptitle (str|None): optional string to use as a suptitle
-            save_path (str|None): optional string defining the file path to save the generated figure
+            sample: a sample returned by :meth:`__getitem__`
+            suptitle: optional string to use as a suptitle
+            save_path: optional path to save the created figure
 
         Returns:
-            A matplotlib Figure with the rendered sample
+            a matplotlib Figure with the rendered sample
         """
-        num_images = self.time_steps + 2
+        # Determine how many subplots we need
+        num_images = self.time_steps + 1  # +1 for the Ground Truth
+        has_prediction = "prediction" in sample
+        if has_prediction:
+            num_images += 1  
 
+        # Prepare the images
         rgb_indices = [self.bands.index(band) for band in self.rgb_bands]
         if len(rgb_indices) != 3:
             msg = "Dataset doesn't contain some of the RGB bands"
             raise ValueError(msg)
 
-        images = sample["image"]
-        images = images[rgb_indices, ...]  # Shape: (T, 3, H, W)
-
+        images = sample["image"][rgb_indices, ...]  # Shape: (T, 3, H, W)
         processed_images = []
         for t in range(self.time_steps):
-            img = images[t]
-            img = img.permute(1, 2, 0)
-            img = img.numpy()
+            img = images[t].permute(1, 2, 0).numpy()
             img = clip_image(img)
             processed_images.append(img)
 
+        # Ground Truth mask
         mask = sample["mask"].numpy()
-        if "prediction" in sample:
-            num_images += 1
-        fig, ax = plt.subplots(1, num_images, figsize=(12, 5), layout="compressed")
-        ax[0].axis("off")
 
-        norm = mpl.colors.Normalize(vmin=0, vmax=self.num_classes - 1)
+        # Prediction mask (optional)
+        prediction = sample["prediction"].numpy() if has_prediction else None
+
+        # Create subplots (exactly the number we need)
+        fig, ax = plt.subplots(
+            1,
+            num_images,
+            figsize=(12, 5),
+        )
+
+        # Display time-step images
         for i, img in enumerate(processed_images):
-            ax[i + 1].axis("off")
-            ax[i + 1].title.set_text(f"T{i}")
-            ax[i + 1].imshow(img)
+            ax[i].axis("off")
+            ax[i].set_title(f"T{i}")
+            ax[i].imshow(img)
 
-        ax[self.time_steps + 1].axis("off")
-        ax[self.time_steps + 1].title.set_text("Ground Truth Mask")
-        ax[self.time_steps + 1].imshow(mask, cmap="jet", norm=norm)
+        # Display ground truth
+        gt_index = self.time_steps
+        ax[gt_index].axis("off")
+        ax[gt_index].set_title("Ground Truth Mask")
+        norm = mpl.colors.Normalize(vmin=0, vmax=self.num_classes - 1)
+        ax[gt_index].imshow(mask, cmap="jet", norm=norm)
 
-        if "prediction" in sample:
-            prediction = sample["prediction"]
-            ax[self.time_steps + 2].axis("off")
-            ax[self.time_steps + 2].title.set_text("Predicted Mask")
-            ax[self.time_steps + 2].imshow(prediction, cmap="jet", norm=norm)
+        # Display prediction if present
+        if has_prediction:
+            pred_index = self.time_steps + 1
+            ax[pred_index].axis("off")
+            ax[pred_index].set_title("Predicted Mask")
+            ax[pred_index].imshow(prediction, cmap="jet", norm=norm)
 
+        # Prepare legend handles and labels
         cmap = plt.get_cmap("jet")
-        legend_data = [[i, cmap(norm(i)), self.class_names[i]] for i in range(self.num_classes)]
-        handles = [Rectangle((0, 0), 1, 1, color=tuple(v for v in c)) for k, c, n in legend_data]
-        labels = [n for k, c, n in legend_data]
-        ax[0].legend(handles, labels, loc="center")
+        legend_data = [
+            [i, cmap(norm(i)), self.class_names[i]] for i in range(self.num_classes)
+        ]
+        
+        handles = [Rectangle((0, 0), 1.3, 1.3, color=tuple(c)) for i, c, n in legend_data]
+        labels = [n for i, c, n in legend_data]
 
+        # Create a figure-level legend with 5 columns, larger font size, centered below
+        fig.legend(
+            handles,
+            labels,
+            loc="lower center",
+            ncol=5,
+            bbox_to_anchor=(0.5, -0.05),  # vertical positioning
+            prop={"size": 13},          # increase legend text size
+        )
+
+        # Tighten up layout
+        plt.subplots_adjust(left=0, right=1, bottom=0.12, top=0.9, wspace=0.05)
+
+        # Optional suptitle
         if suptitle is not None:
             plt.suptitle(suptitle)
-
+            
         # Save the figure to the given path if specified
         if save_path is not None:
-            fig.savefig(save_path)
+            fig.savefig(save_path)    
 
         return fig
