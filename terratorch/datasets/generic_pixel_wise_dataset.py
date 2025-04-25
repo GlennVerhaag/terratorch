@@ -473,6 +473,7 @@ class GenericNonGeoPixelwiseRegressionDataset(GenericPixelWiseDataset):
             prediction=prediction_mask if showing_predictions else None,
             suptitle=suptitle,
             show_axes=show_axes,
+            save_path=save_path
         )
 
     @staticmethod
