@@ -163,6 +163,6 @@ class Landslide4SenseNonGeo(NonGeoDataset):
             plt.suptitle(suptitle)
             
         if save_path is not None:
-            fig.savefig(save_path)
+            fig.savefig(save_path, dpi=500)
 
         return fig

@@ -6,6 +6,7 @@ import kornia.augmentation as K  # noqa: N812
 from torchgeo.datamodules import NonGeoDataModule
 from torchgeo.transforms import AugmentationSequential
 
+from terratorch.datamodules.generic_pixel_wise_data_module import Normalize
 from terratorch.datamodules.generic_multimodal_data_module import wrap_in_compose_is_list
 from terratorch.datasets import Landslide4SenseNonGeo
 
@@ -86,7 +87,7 @@ class Landslide4SenseNonGeoDataModule(NonGeoDataModule):
         self.test_transform = wrap_in_compose_is_list(test_transform)
         self.predict_transform = wrap_in_compose_is_list(predict_transform)
         self.aug = (
-            AugmentationSequential(K.Normalize(self.means, self.stds)) if aug is None else aug
+            Normalize(self.means, self.stds) if aug is None else aug
         )
 
     def setup(self, stage: str) -> None:
